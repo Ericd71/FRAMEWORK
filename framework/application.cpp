@@ -36,32 +36,28 @@ void Application::Init(void)
     
     camera = new Camera();
     camera->LookAt(Vector3(0,0,1), Vector3(0,0,0), Vector3(0,1,0));
+    
     camera->SetPerspective(45, framebuffer.width / (float)framebuffer.height, 1.0, 100);
     
     
     //Loading Anna
-    mesh.LoadOBJ("meshes/anna.obj");
+    entity.mesh.LoadOBJ("meshes/anna.obj");
     
-    model.SetIdentity(); //Setting identity matrix
-    model.Translate(0, -0.3, 0); //Translate matrix
-    //entity.setModelMat(modelMat);
-    //entity.setMesh(&mesh);
     
-    mesh2.LoadOBJ("meshes/lee.obj");
+    //model.SetIdentity(); //Setting identity matrix
+    //model.Translate(0, -0.3, 0); //Translate matrix
     
-    model.SetIdentity();
-    model.Translate(-0.5, -0.3, 0); //Translate matrix
-    //entity2.setModelMat(modelMat); //We set the Model Matrix
-    //entity2.setMesh(&mesh2); //We set the mesh
+    entity2.mesh.LoadOBJ("meshes/lee.obj");
     
-    if (mesh3.LoadOBJ("meshes/cleo.obj")) {
+    //model.SetIdentity();
+    //model.Translate(20, 0, 0); //Translate matrix
+    
+    if (entity3.mesh.LoadOBJ("meshes/cleo.obj")) {
          //We load cleo's mesh
     } else printf("Error loading Cleo");
 
-    model.SetIdentity(); //We set the identity matrix
-    model.Translate(0.3, -0.3, 0); //Translate matrix
-    //entity3.setModelMat(modelMat); //We set the Model Matrix
-    //entity3.setMesh(&mesh3); //We set the mesh
+    //model.SetIdentity(); //We set the identity matrix
+    //model.Translate(0.3, -0.3, 0); //Translate matrix
 
     //Now we set how the camera looks
     camera->SetPerspective(fov, float(framebuffer.width) / framebuffer.height, near_plane, far_plane);
@@ -80,7 +76,9 @@ void Application::Render(void)
     // Testing different functions
     entity.Render(&framebuffer, camera, Color::CYAN);
     entity2.Render(&framebuffer, camera, Color::YELLOW);
-    entity3.Render(&framebuffer, camera, Color::YELLOW);
+    entity3.Render(&framebuffer, camera, Color::RED);
+    
+    
     
     
     

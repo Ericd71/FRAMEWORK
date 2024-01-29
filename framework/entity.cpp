@@ -28,10 +28,11 @@ float x, y;
 
 void Entity::Render(Image* framebuffer, Camera* camera, const Color& c) {
     //Get vertices
-    //const std::vector<Vector3> vertices = mesh.GetVertices();
-    for (int row = 0; row < this->mesh.vertices.size(); row += 3) { //We iterate through every line of the 'mesh file in packs of three so as to obtain three points for each triangle
+    std::vector<Vector3> vertices = this->mesh.GetVertices();
+    
+    for (int row = 0; row < vertices.size(); row += 3) { //Iterating to get 3 points for each vertex
         for (int i = 0; i < 3 && !negZ; i++) { //With this for loop we will store the three coordinates of each line of the mesh file
-            coord = this->mesh.vertices[row + i]; //We save the coordinate vector xyz
+            coord = vertices[row + i]; //We save the coordinate vector xyz
             coord = this->modelMat * coord; //We multiply the model matrix with our 3D coordinate system so as to go from Local space to work with the world space
             coord = camera->ProjectVector(coord, negZ); //World to View space transformation
             //Clip to Screen transformation
