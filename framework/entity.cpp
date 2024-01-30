@@ -17,6 +17,7 @@ Entity::Entity(Mesh mesh, Matrix44 model) {
     this->modelMat = Matrix44();
 }
 
+
 Vector3 coord;
 //Defining negZ as false
 bool negZ = false;
