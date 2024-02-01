@@ -30,8 +30,6 @@ public:
     Entity entity3;
     Matrix44 model;
     Mesh mesh;
-    Mesh mesh2;
-    Mesh mesh3;
 
 	// Input
 	const Uint8* keystate;

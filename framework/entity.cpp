@@ -52,6 +52,13 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& c) {
 }
 
 
-void Entity::Update(float seconds_elapsed) {
+void Entity::Update(float seconds_elapsed, int option) {
+    if (option == 1) this->modelMat.Rotate(0.1, Vector3(0,1,0));
+    if (option == 2) this->modelMat.Translate(0, 0.003, 0);
+    if (option == 3) {
+        this->modelMat.m[0] += 0.07;
+        this->modelMat.m[5] += 0.07;
+        this->modelMat.m[10] += 0.07;
+    }
     
 }

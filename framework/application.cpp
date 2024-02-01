@@ -34,21 +34,19 @@ void Application::Init(void)
     float far_plane = 100;
     
     camera = new Camera();
-    camera->LookAt(Vector3(0,0,1), Vector3(0,0,0), Vector3(0,1,0));
-    
-    camera->SetPerspective(45, framebuffer.width / (float)framebuffer.height, 1.0, 100);
+    camera->LookAt(Vector3(0,0,1), Vector3(0,0,0), Vector3::UP);
+
     
     
     //Loading Anna
     entity.mesh.LoadOBJ("meshes/anna.obj");
     
-    
-    //model.SetIdentity(); //Setting identity matrix
-    //model.Translate(0, -0.3, 0); //Translate matrix
-    
+
+    //Loading Lee
     entity2.mesh.LoadOBJ("meshes/lee.obj");
+    entity2.modelMat.Translate(0, -0.3, 0); //Translate matrix
     
-    //model.SetIdentity();
+    
     //model.Translate(20, 0, 0); //Translate matrix
     
     if (entity3.mesh.LoadOBJ("meshes/cleo.obj")) {
@@ -65,17 +63,34 @@ void Application::Init(void)
     camera->up.Set(0, 1, 0); // The up pointing up
     camera->UpdateViewMatrix();
     
-    
 }
+
+bool case1 = false;
+bool case2 = false;
+
+
+bool nearplane = false; //1 for near, 2 for far
+
+float near_plane;
+float far_plane;
+
+
 
 // Render one frame
 void Application::Render(void)
 {
 	// ...
     // Testing different functions
-    entity.Render(&framebuffer, camera, Color::CYAN);
-    entity2.Render(&framebuffer, camera, Color::YELLOW);
-    entity3.Render(&framebuffer, camera, Color::RED);
+    framebuffer.DrawBlack(0, 0, framebuffer.width, framebuffer.height);
+    if (case1) entity.Render(&framebuffer, camera, Color::CYAN);
+    if (case2) {
+        entity.Render(&framebuffer, camera, Color::CYAN);
+        entity2.Render(&framebuffer, camera, Color::YELLOW);
+        entity3.Render(&framebuffer, camera, Color::RED);
+    }
+    
+    
+    
     
     
     
@@ -88,6 +103,12 @@ void Application::Render(void)
 // Called after render
 void Application::Update(float seconds_elapsed)
 {
+    if (case2) {
+        this->entity.Update(seconds_elapsed, 1);
+        this->entity2.Update(seconds_elapsed, 2);
+        this->entity3.Update(seconds_elapsed, 3);
+    }
+    
 }
 
 //int pointcount = 0;
@@ -122,10 +143,13 @@ void Application::OnKeyPressed( SDL_KeyboardEvent event )
     switch(event.keysym.sym) {
         case SDLK_ESCAPE: exit(0); break; // ESC key, kill the app
         case SDLK_1:
+            if (!case1) case1 = true; else case1 = false;
             printf("Draw single entity!");
             break;
         case SDLK_2:
+            if (!case2) case2 = true; else case2 = false;
             printf("Draw multiple animated entities!");
+            
             break;
         case SDLK_o:
             printf("Set Ortographic camera mode");
@@ -135,10 +159,18 @@ void Application::OnKeyPressed( SDL_KeyboardEvent event )
             printf("Set Perspective camera mode");
             //camera->SetPerspective(<#float fov#>, <#float aspect#>, <#float near_plane#>, <#float far_plane#>);
             break;
-        case SDLK_PLUS:
+        case SDLK_n:
+            if (!nearplane) nearplane = true; else nearplane = false;
+            printf("Set current property to camera near");
+        case SDLK_f:
+            if (nearplane) nearplane = false; else nearplane = true;
+            printf("Set current property to camera far");
+        case SDLK_g: //Should be SDLK_PLUS
+            if (nearplane) near_plane += 0.01; else far_plane += 1;
             printf("Increase CURRENT PROPERTY");
             break;
         case SDLK_MINUS:
+            if (nearplane) near_plane -= 0.01; else far_plane -= 1;
             printf("Decrease CURRENT PROPERTY");
             break;
     }
