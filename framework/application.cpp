@@ -25,36 +25,33 @@ Application::~Application()
 {
 }
 
+float fov = 45;
+float near_plane = 0.01;
+float far_plane = 100;
+bool nearplane = false; //true for near, false for far
+bool perspective = true; // true for perspective, false for ortographic
+int menu = 2;
+
 void Application::Init(void)
 {
 	std::cout << "Initiating app..." << std::endl;
     
-    float fov = 45;
-    float near_plane = 0.01;
-    float far_plane = 100;
-    
     camera = new Camera();
     camera->LookAt(Vector3(0,0,1), Vector3(0,0,0), Vector3::UP);
-
-    
     
     //Loading Anna
-    entity.mesh.LoadOBJ("meshes/anna.obj");
+    anna.mesh.LoadOBJ("meshes/anna.obj");
     
 
     //Loading Lee
-    entity2.mesh.LoadOBJ("meshes/lee.obj");
-    entity2.modelMat.Translate(0, -0.3, 0); //Translate matrix
+    lee.mesh.LoadOBJ("meshes/lee.obj");
+
     
-    
-    //model.Translate(20, 0, 0); //Translate matrix
-    
-    if (entity3.mesh.LoadOBJ("meshes/cleo.obj")) {
+    if (cleo.mesh.LoadOBJ("meshes/cleo.obj")) {
          //We load cleo's mesh
     } else printf("Error loading Cleo");
 
-    //model.SetIdentity(); //We set the identity matrix
-    //model.Translate(0.3, -0.3, 0); //Translate matrix
+
 
     //Now we set how the camera looks
     camera->SetPerspective(fov, float(framebuffer.width) / framebuffer.height, near_plane, far_plane);
@@ -69,33 +66,24 @@ bool case1 = false;
 bool case2 = false;
 
 
-bool nearplane = false; //1 for near, 2 for far
-
-float near_plane;
-float far_plane;
-
-
-
 // Render one frame
 void Application::Render(void)
 {
 	// ...
     // Testing different functions
     framebuffer.DrawBlack(0, 0, framebuffer.width, framebuffer.height);
-    if (case1) entity.Render(&framebuffer, camera, Color::CYAN);
-    if (case2) {
-        entity.Render(&framebuffer, camera, Color::CYAN);
-        entity2.Render(&framebuffer, camera, Color::YELLOW);
-        entity3.Render(&framebuffer, camera, Color::RED);
+    //framebuffer.DrawTriangleInterpolated(Vector3(100, 100, 5), Vector3(300, 350, 20), Vector3(630, 300, 10), Color::RED, Color::CYAN, Color::YELLOW);
+    if (case1) {
+        anna.Render(&framebuffer, camera, Color::RED, menu);
+        //lee.Render(&framebuffer, camera, Color::GREEN, menu);
+        //cleo.Render(&framebuffer, camera, Color::BLUE, menu);
     }
-    
-    
-    
-    
-    
-    
-    
-    
+    if (case2) {
+        anna.Render(&framebuffer, camera, Color::CYAN, menu);
+        //lee.Render(&framebuffer, camera, Color::YELLOW, menu);
+        //cleo.Render(&framebuffer, camera, Color::RED, menu);
+    }
+        
     // Send the framebuffer to the screen
 	framebuffer.Render();
 }
@@ -104,32 +92,21 @@ void Application::Render(void)
 void Application::Update(float seconds_elapsed)
 {
     if (case2) {
-        this->entity.Update(seconds_elapsed, 1);
-        this->entity2.Update(seconds_elapsed, 2);
-        this->entity3.Update(seconds_elapsed, 3);
+        this->anna.Update(seconds_elapsed, 1);
+        this->lee.Update(seconds_elapsed, 2);
+        this->cleo.Update(seconds_elapsed, 3);
     }
+    
+    camera->UpdateViewMatrix();
+    camera->UpdateProjectionMatrix();
+    
     
 }
 
-//int pointcount = 0;
-//Vector2 points[3];
-//
-//Vector2 center;
-//float radius;
-//
-//bool fillShapes = false;
-//
-//Color color;
-//
-//bool paint = false;
-//
-//bool eraser = false;
-//
-//Vector2 final_point;
-
 void Application::OnMouseButtonDown( SDL_MouseButtonEvent event )
 {
-    if (event.button == SDL_BUTTON_LEFT) {
+    
+    if (event.button == SDL_BUTTON_LEFT) { // Should be button right
         
     }
 }
@@ -152,26 +129,66 @@ void Application::OnKeyPressed( SDL_KeyboardEvent event )
             
             break;
         case SDLK_o:
+            if (perspective) perspective = false; //Set ortographic
+            //framebuffer.Fill(Color::BLACK);
+            //camera->SetOrthographic(-0.5, 0.7, 0.6, -0.2, near_plane, far_plane); //Set orthographic type
+            camera->type = Camera::ORTHOGRAPHIC;
+            //entity.Render(&framebuffer, camera, Color::PURPLE);
+            //entity2.Render(&framebuffer, camera, Color::PURPLE);
+            //entity3.Render(&framebuffer, camera, Color::PURPLE);
             printf("Set Ortographic camera mode");
-            //camera->SetOrthographic(<#float left#>, <#float right#>, <#float top#>, <#float bottom#>, <#float near_plane#>, <#float far_plane#>);
             break;
         case SDLK_p:
+            if (!perspective) perspective = true;
+            //framebuffer.Fill(Color::BLACK);
+            //camera->SetPerspective(fov, float(framebuffer.width) / framebuffer.height, near_plane, far_plane); //Set perspective type
+            camera->type = Camera::PERSPECTIVE;
+            //entity.Render(&framebuffer, camera, Color::YELLOW);
+            //entity2.Render(&framebuffer, camera, Color::YELLOW);
+            //entity3.Render(&framebuffer, camera, Color::YELLOW);
             printf("Set Perspective camera mode");
-            //camera->SetPerspective(<#float fov#>, <#float aspect#>, <#float near_plane#>, <#float far_plane#>);
             break;
         case SDLK_n:
-            if (!nearplane) nearplane = true; else nearplane = false;
+            if (!nearplane) nearplane = true; // set nearplane
             printf("Set current property to camera near");
+            break;
         case SDLK_f:
-            if (nearplane) nearplane = false; else nearplane = true;
+            if (nearplane) nearplane = false; // set farplane
             printf("Set current property to camera far");
-        case SDLK_g: //Should be SDLK_PLUS
-            if (nearplane) near_plane += 0.01; else far_plane += 1;
+            break;
+        case SDLK_PLUS: //Should be SDLK_PLUS
+            if (perspective){ //Perspective
+                if (nearplane) near_plane += .1; else if (!nearplane) far_plane += 5;
+                camera->SetPerspective(fov, float(framebuffer.width) / framebuffer.height, near_plane, far_plane);
+            }
+            
+            else if (!perspective) { //Orthographic
+                if (nearplane) near_plane += .1; else if (!nearplane) far_plane += 5;
+                camera->SetOrthographic(0.5, 0.2, 0.7, 0.3, near_plane, far_plane);
+            }
+            
             printf("Increase CURRENT PROPERTY");
             break;
         case SDLK_MINUS:
-            if (nearplane) near_plane -= 0.01; else far_plane -= 1;
+            if (perspective){
+                if (nearplane) near_plane -= .1; else if (!nearplane) far_plane -= 5;
+                camera->SetPerspective(fov, float(framebuffer.width) / framebuffer.height, near_plane, far_plane);
+            }
+            
+            else if (!perspective) {
+                if (nearplane) near_plane -= .1; else if (!nearplane) far_plane -= 5;
+                camera->SetOrthographic(0.5, 0.2, 0.7, 0.3, near_plane, far_plane);
+            }
             printf("Decrease CURRENT PROPERTY");
+            break;
+        case SDLK_c:
+            printf("Toggle (activate/deactivate) between PLAIN COLOR/INTERPOLATED vertex colors");
+            break;
+        case SDLK_z:
+            printf("Toggle between OCCLUSIONS and NO OCCLUSIONS");
+            break;
+        case SDLK_t:
+            printf("Toggle between USE MESH TEXTURE and USE PLAIN COLOR colors");
             break;
     }
 }
@@ -185,16 +202,34 @@ void Application::OnMouseButtonUp( SDL_MouseButtonEvent event )
 	}
 }
 
+float xMouse;
+float yMouse;
+
 void Application::OnMouseMove(SDL_MouseButtonEvent event) {
-    if (event.button == SDL_BUTTON_LEFT) {
-        
+    if (event.button == SDL_BUTTON_LEFT) { //Eye (camera orbit)
+        camera->Orbit(-mouse_delta.x * 0.01, Vector3::UP);
+        camera->Orbit(-mouse_delta.y * 0.01, Vector3::RIGHT);
+//        xMouse = event.x;
+//        xMouse = xMouse / framebuffer.width; //We normalize the x
+//        yMouse = event.y;
+//        yMouse = yMouse / framebuffer.height; //We normalize the y
+//        camera->eye.Set(xMouse, yMouse, 1); //Set where is the camera
+//        camera->UpdateViewMatrix(); //And update the matrix
+    }
+    if (event.button == SDL_BUTTON_RIGHT) { //Center
+        xMouse = event.x;
+        xMouse = xMouse / framebuffer.width; //We normalize the x
+        yMouse = event.y;
+        yMouse = yMouse / framebuffer.height; //We normalize the y
+        camera->center.Set(xMouse, yMouse, 0);
+        camera->UpdateViewMatrix(); //And update the matrix
     }
 }
 
 void Application::OnWheel(SDL_MouseWheelEvent event)
 {
 	float dy = event.preciseY;
-
+    camera->Zoom(dy < 0 ? 1.1 : 0.9);
 	// ...
 }
 

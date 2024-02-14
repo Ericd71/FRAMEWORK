@@ -413,65 +413,160 @@ void Image::DrawCircle(int x, int y, int r, const Color& borderColor, int border
         }
     }
 }
-
 void Image::ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table) {
-    // Calculate the differences between endpoints
-    int dx = x1 - x0;
-    int dy = y1 - y0;
-    
-    // Compute d as the largest leg of the triangle
-    int d = std::max(std::abs(dx), std::abs(dy));
-    
-    // Compute the direction step vector v(dx/d, dy/d)
-    float vx = (float)(dx) / d;
-    float vy = (float)(dy) / d;
 
-    float x = x0;
-    float y = y0;
+    float dx = x1 - x0;
+    float dy = y1 - y0;
 
-    for (int i = 0; i <= d; ++i) {
-        int currentY = (int)(floor(y));
-        for (int j = 0; j < table.size(); ++j) {
-            if (table[j].y == currentY) {
-                table[j].minx = std::min(table[j].minx, (int)(floor(x)));
-                table[j].maxx = std::max(table[j].maxx, (int)(floor(x)));
+    float d = std::max(abs(dx), abs(dy));
+    Vector2 v = Vector2(dx / d, dy / d);
+    float x = x0, y = y0;
+
+    for (float i = 0; i < d; i++) {
+        //Update the table only if the calculated y coordinates are within the range of the image
+        if ((y) >= 0 && (y) < table.size()) {
+            table[floor(y)].minx = std::min(table[floor(y)].minx, static_cast<int>(floor(x))); // Ensure proper casting
+            table[floor(y)].maxx = std::max(static_cast<int>(floor(x)), table[floor(y)].maxx);
+        }
+        x += v.x;
+        y += v.y;
+    }
+}
+
+void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor) {
+
+    if (isFilled) {
+        //Create table
+        std::vector<Cell> table(height);
+        //Update table with the min and max x values of the triangle
+        ScanLineDDA(p0.x, p0.y, p1.x, p1.y, table);
+        ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table);
+        ScanLineDDA(p0.x, p0.y, p2.x, p2.y, table);
+        //Paint the triangle
+        for (int i = 0; i < table.size(); i++) {
+            //Paint each row of the triangle from minx to maxx (included)
+            for (int j = table[i].minx; j <= table[i].maxx; j++) {
+                SetPixelSafe(j, i, fillColor);
             }
         }
-        x += vx;
-        y += vy;
+    }
+
+    DrawLineDDA(p0.x, p0.y, p1.x, p1.y, borderColor);
+    DrawLineDDA(p0.x, p0.y, p2.x, p2.y, borderColor);
+    DrawLineDDA(p1.x, p1.y, p2.x, p2.y, borderColor);
+}
+
+//3,2
+//void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2) {
+//    std::vector<Cell> AET;
+//    AET.resize(this->height);
+//
+//    for (int i = 0; i < AET.size(); i++) {
+//        AET[i].maxx = -1;
+//        AET[i].minx = this->width + 20;
+//    }
+//    ScanLineDDA(p0.x, p0.y, p1.x, p1.y, AET);
+//    ScanLineDDA(p0.x, p0.y, p2.x, p2.y, AET);
+//    ScanLineDDA(p1.x, p1.y, p2.x, p2.y, AET);
+//
+//    for (int j = 0; j < AET.size(); j++) {
+//        if (AET[j].maxx > AET[j].minx) {
+//            this->DrawHorizontal(AET[j].minx, AET[j].maxx, j, p0, p1, p2, c0, c1, c2);
+//        }
+//    }
+//}
+
+//void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2) {
+//    std::vector<Cell> AET;
+//    AET.resize(this->height);
+//
+//    for (int i = 0; i < AET.size(); i++) {
+//        AET[i].maxx = -1;
+//        AET[i].minx = this->width + 20;
+//    }
+//    ScanLineDDA(p0.x, p0.y, p1.x, p1.y, AET);
+//    ScanLineDDA(p0.x, p0.y, p2.x, p2.y, AET);
+//    ScanLineDDA(p1.x, p1.y, p2.x, p2.y, AET);
+//    
+//    Color point_color;
+//    Matrix44 m;
+//    m.M[0][0] = p0.x; m.M[1][0] = p1.x; m.M[2][0] = p2.x;
+//    m.M[0][1] = p0.y; m.M[1][1] = p1.y; m.M[2][1] = p2.y;
+//    m.M[0][2] = 1; m.M[1][2] = 1; m.M[2][2] = 1;
+//    m.Inverse();
+//    
+//    for (int i = 0; i < Image::height; i++) {
+//        for (int j = AET[i].minx; j < AET[i].maxx; j++) {
+//            
+//            Vector3 bCoords1 = m * Vector3(p0.x, p0.y, 1);
+//            Vector3 bCoords2 = m * Vector3(p1.x, p1.y, 1);
+//            Vector3 bCoords3 = m * Vector3(p2.x, p2.y, 1);
+//            bCoords1.Clamp(0, 1); bCoords2.Clamp(0, 1); bCoords3.Clamp(0, 1);
+//            bCoords1.Normalize(); bCoords2.Normalize(); bCoords3.Normalize();
+//            
+//            if ((bCoords1.x < 0) || (bCoords1.y < 0) || (bCoords1.z < 0) || (bCoords2.x < 0) || (bCoords2.y < 0) || (bCoords2.z < 0) || (bCoords3.x < 0) || (bCoords3.y < 0) || (bCoords3.z < 0))
+//                continue;
+//            
+//            point_color = bCoords1 * Vector3(c0.r, c0.g, c0.b) + bCoords2 * Vector3(c1.r, c1.g, c1.b) + bCoords3 * Vector3(c2.r, c2.g, c2.b);
+//            
+//            Image::SetPixelSafe(j, i, point_color);
+//        }
+//    }
+//}
+
+void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2)
+{
+
+    std::vector<Cell> AET;
+    AET.resize(this->height);
+
+    for (int i = 0; i < AET.size(); i++)
+    {
+        AET[i].maxx = -1;
+        AET[i].minx = this->width + 20;
+    }
+    ScanLineDDA(p0.x, p0.y, p1.x, p1.y, AET);
+    ScanLineDDA(p0.x, p0.y, p2.x, p2.y, AET);
+    ScanLineDDA(p1.x, p1.y, p2.x, p2.y, AET);
+
+    for (int j = 0; j < AET.size(); j++)
+    {
+        if (AET[j].maxx > AET[j].minx)
+        {
+            this->DrawHorizontal(AET[j].minx, AET[j].maxx, j, p0, p1, p2, c0, c1, c2);
+        }
     }
 }
 
 
-void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor) {
-    float topPoint = std::max(p0.y, p1.y);
-    topPoint = std::max(topPoint, p2.y);
-    float minPoint = std::min(p0.y, p1.y);
-    minPoint = std::min(minPoint, p2.y);
-    int h = (int)(topPoint - minPoint);
+void Image::DrawHorizontal(int x0, int x1, int y, Vector3 p0, Vector3 p1, Vector3 p2, const Color& c0, const Color& c1, const Color& c2)
+{
+    Vector2 v0 = Vector2(p1.x - p0.x, p1.y - p0.y);
+    Vector2 v1 = Vector2(p2.x - p0.x, p2.y - p0.y);
+    for (int x = x0; x <= x1; x++)
+    {
+        Vector2 v2 = Vector2(x - p0.x, y - p0.y);
 
-    std::vector<Cell> table;
-    table.resize(h);
+        float d00 = v0.Dot(v0);
+        float d01 = v0.Dot(v1);
+        float d11 = v1.Dot(v1);
+        float d20 = v2.Dot(v0);
+        float d21 = v2.Dot(v1);
+        float denom = d00 * d11 - d01 * d01;
+        float v = (d11 * d20 - d01 * d21) / denom;
+        float w = (d00 * d21 - d01 * d20) / denom;
+        float u = 1.0 - v - w;
 
-    for (int i = 0; i < h; ++i) {
-        table[i].y = (int)(minPoint) + i;
-    }
+        Vector3 weights = Vector3(u, v, w);
+        float sum = v + u + w;
+        weights.Clamp(0, 1);
+        u = weights.x / sum;
+        v = weights.y / sum;
+        w = weights.z / sum;
 
-    ScanLineDDA(p0.x, p0.y, p1.x, p1.y, table);
-    ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table);
-    ScanLineDDA(p2.x, p2.y, p0.x, p0.y, table);
-
-    for (int i = 0; i < h; ++i) {
-        SetPixelSafe(table[i].minx, minPoint + i, borderColor);
-        SetPixelSafe(table[i].maxx, minPoint + i, borderColor);
-        if (isFilled) {
-            for (int x = table[i].minx + 1; x < table[i].maxx; ++x) {
-                SetPixelSafe(x, minPoint + i, fillColor);
-            }
-        }
-    }
-    for (int i = table[0].minx; i < table[0].maxx; ++i) {
-        SetPixelSafe(i, minPoint, borderColor);
+        Color c = c0 * u + c1 * v + c2 * w;
+        SetPixelSafe(x, y, c);
+        
     }
 }
 

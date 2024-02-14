@@ -91,10 +91,13 @@ public:
     void DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor);
     void DrawImage(const Image& image, int x, int y, bool top);
     void ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table);
+    void DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2);
     
     void DrawFree(int x0, int y0, int x1, int y1, const Color& color);
     
     void DrawBlack(int x, int y, int width, int height);
+    
+    void DrawHorizontal(int x0, int x1, int y, Vector3 p0, Vector3 p1, Vector3 p2, const Color& c0, const Color& c1, const Color& c2);
         
     // Used to easy code
 	#ifndef IGNORE_LAMBDAS

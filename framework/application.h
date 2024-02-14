@@ -25,9 +25,9 @@ public:
 	float time;
     
     Camera* camera;
-    Entity entity;
-    Entity entity2;
-    Entity entity3;
+    Entity anna;
+    Entity lee;
+    Entity cleo;
     Matrix44 model;
     Mesh mesh;
 

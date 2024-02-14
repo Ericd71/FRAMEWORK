@@ -19,7 +19,7 @@ public:
     
     
     
-    void Render(Image* framebuffer, Camera* camera, const Color& c);
+    void Render(Image* framebuffer, Camera* camera, const Color& c, int menu);
     void Update(float seconds_elapsed, int option);
     
 };
