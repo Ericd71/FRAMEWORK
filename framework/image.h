@@ -84,6 +84,15 @@ public:
 	bool LoadTGA(const char* filename, bool flip_y = false);
 	bool SaveTGA(const char* filename);
     
+    struct sTriangleInfo {
+        struct { //Properties for each vertex
+            Vector3 position;
+            Vector2 uv;
+            Vector3 color;
+        } vertices[3];
+        Image* texture; //Pointer to an image that is the texture
+    };
+    
     
     void DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c);
 	void DrawRect(int x, int y, int w, int h, const Color& borderColor, int borderWidth, bool isFilled, const Color& fillColor);
@@ -92,12 +101,15 @@ public:
     void DrawImage(const Image& image, int x, int y, bool top);
     void ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table);
     void DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2);
+    void DrawTriangleInterpolated(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Color &c0, const Color &c1, const Color &c2, FloatImage* zbuffer);
+    void DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2, FloatImage* zbuffer, Image * texture, const Vector2& uv0, const Vector2& uv1, const Vector2& uv2);
+    void DrawTriangleInterpolated(const sTriangleInfo& triangle, FloatImage* zbuffer);
     
     void DrawFree(int x0, int y0, int x1, int y1, const Color& color);
     
     void DrawBlack(int x, int y, int width, int height);
     
-    void DrawHorizontal(int x0, int x1, int y, Vector3 p0, Vector3 p1, Vector3 p2, const Color& c0, const Color& c1, const Color& c2);
+    
         
     // Used to easy code
 	#ifndef IGNORE_LAMBDAS

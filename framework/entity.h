@@ -17,9 +17,16 @@ public:
     Entity();
     Entity(Mesh* mesh, Vector3 translation, Vector3 rotational, Vector3 scale, float angle);
     
+    enum class eRenderMode {
+        COLOR,
+        TEXTURES,
+        OCCLUSIONS,
+        TRIANGLES_INTERPOLATED
+    };
     
-    
-    void Render(Image* framebuffer, Camera* camera, const Color& c, int menu);
+    eRenderMode mode;
+
+    void Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* zBuffer, Image* texture);
     void Update(float seconds_elapsed, int option);
     
 };

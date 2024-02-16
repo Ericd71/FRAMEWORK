@@ -19,6 +19,7 @@ Application::Application(const char* caption, int width, int height)
 	this->keystate = SDL_GetKeyboardState(nullptr);
 
 	this->framebuffer.Resize(w, h);
+    this->zBuffer.Resize(w, h);
 }
 
 Application::~Application()
@@ -30,7 +31,6 @@ float near_plane = 0.01;
 float far_plane = 100;
 bool nearplane = false; //true for near, false for far
 bool perspective = true; // true for perspective, false for ortographic
-int menu = 2;
 
 void Application::Init(void)
 {
@@ -50,6 +50,16 @@ void Application::Init(void)
     if (cleo.mesh.LoadOBJ("meshes/cleo.obj")) {
          //We load cleo's mesh
     } else printf("Error loading Cleo");
+    
+    texture_lee =  new Image();
+    
+    texture_anna =  new Image();
+    
+    texture_cleo =  new Image();
+    
+    bool tex_a = texture_anna->LoadTGA("textures/anna_color_specular.tga",true);
+    bool tex_l = texture_lee->LoadTGA("textures/lee_color_specular.tga", true);
+    bool tex_c = texture_cleo->LoadTGA("textures/cleo_color_specular.tga", true);
 
 
 
@@ -72,16 +82,18 @@ void Application::Render(void)
 	// ...
     // Testing different functions
     framebuffer.DrawBlack(0, 0, framebuffer.width, framebuffer.height);
+    zBuffer.Fill(100.0);
+    
     //framebuffer.DrawTriangleInterpolated(Vector3(100, 100, 5), Vector3(300, 350, 20), Vector3(630, 300, 10), Color::RED, Color::CYAN, Color::YELLOW);
     if (case1) {
-        anna.Render(&framebuffer, camera, Color::RED, menu);
-        //lee.Render(&framebuffer, camera, Color::GREEN, menu);
-        //cleo.Render(&framebuffer, camera, Color::BLUE, menu);
+        anna.Render(&framebuffer, camera, Color::RED, &zBuffer, texture_anna);
+        //lee.Render(&framebuffer, camera, Color::GREEN, &zBuffer, texture_lee);
+        //cleo.Render(&framebuffer, camera, Color::BLUE, &zBuffer, texture_cleo);
     }
     if (case2) {
-        anna.Render(&framebuffer, camera, Color::CYAN, menu);
-        //lee.Render(&framebuffer, camera, Color::YELLOW, menu);
-        //cleo.Render(&framebuffer, camera, Color::RED, menu);
+        anna.Render(&framebuffer, camera, Color::RED, &zBuffer, texture_anna);
+        //lee.Render(&framebuffer, camera, Color::GREEN, &zBuffer, texture_lee);
+        //cleo.Render(&framebuffer, camera, Color::BLUE, &zBuffer, texture_cleo);
     }
         
     // Send the framebuffer to the screen
@@ -91,6 +103,7 @@ void Application::Render(void)
 // Called after render
 void Application::Update(float seconds_elapsed)
 {
+    anna.Render(&framebuffer, camera, Color::RED, &zBuffer, texture_anna);
     if (case2) {
         this->anna.Update(seconds_elapsed, 1);
         this->lee.Update(seconds_elapsed, 2);
@@ -181,14 +194,26 @@ void Application::OnKeyPressed( SDL_KeyboardEvent event )
             }
             printf("Decrease CURRENT PROPERTY");
             break;
+            
+            // COLOR - TRIANGLES 3.1
+            // TRIANGLES-INTERPOLATED - 3.2
+            // OCCLUSIONS - Z-BUFFER, 3.3
+            // TEXTURES - 3.4
         case SDLK_c:
             printf("Toggle (activate/deactivate) between PLAIN COLOR/INTERPOLATED vertex colors");
+            //Could do with all 3 Entities
+            if (anna.mode == Entity::eRenderMode::COLOR) anna.mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
+            else anna.mode = Entity::eRenderMode::COLOR;
             break;
         case SDLK_z:
             printf("Toggle between OCCLUSIONS and NO OCCLUSIONS");
+            if (anna.mode == Entity::eRenderMode::OCCLUSIONS) anna.mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
+            else anna.mode = Entity::eRenderMode::OCCLUSIONS;
             break;
         case SDLK_t:
             printf("Toggle between USE MESH TEXTURE and USE PLAIN COLOR colors");
+            if (anna.mode == Entity::eRenderMode::TEXTURES) anna.mode = Entity::eRenderMode::COLOR;
+            else anna.mode = Entity::eRenderMode::TEXTURES;
             break;
     }
 }

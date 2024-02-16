@@ -30,7 +30,12 @@ public:
     Entity cleo;
     Matrix44 model;
     Mesh mesh;
-
+    
+    Image* texture_lee;
+    Image* texture_anna;
+    Image* texture_cleo;
+    
+    FloatImage zBuffer;
 	// Input
 	const Uint8* keystate;
 	int mouse_state; // Tells which buttons are pressed
