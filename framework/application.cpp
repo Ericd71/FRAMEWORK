@@ -26,49 +26,38 @@ Application::~Application()
 {
 }
 
+Mesh quad;
+Shader *shader;
+Texture *texture;
+
 float fov = 45;
 float near_plane = 0.01;
 float far_plane = 100;
 bool nearplane = false; //true for near, false for far
 bool perspective = true; // true for perspective, false for ortographic
+float option;
+//Drawing formulas
+bool Ex1 = false;
+bool _a = false;
+bool _b = false;
+bool _c = false;
+bool _d = false;
+bool _e = false;
+bool _f = false;
+//Simple image filters
+bool Ex2 = false;
+//Image transformations
+bool Ex3 = false;
+//Render 3D mesh using GPU
+bool Ex4 = false;
 
 void Application::Init(void)
 {
 	std::cout << "Initiating app..." << std::endl;
     
-    camera = new Camera();
-    camera->LookAt(Vector3(0,0,1), Vector3(0,0,0), Vector3::UP);
-    
-    //Loading Anna
-    anna.mesh.LoadOBJ("meshes/anna.obj");
-    
-
-    //Loading Lee
-    lee.mesh.LoadOBJ("meshes/lee.obj");
-
-    
-    if (cleo.mesh.LoadOBJ("meshes/cleo.obj")) {
-         //We load cleo's mesh
-    } else printf("Error loading Cleo");
-    
-    texture_lee =  new Image();
-    
-    texture_anna =  new Image();
-    
-    texture_cleo =  new Image();
-    
-    bool tex_a = texture_anna->LoadTGA("textures/anna_color_specular.tga",true);
-    bool tex_l = texture_lee->LoadTGA("textures/lee_color_specular.tga", true);
-    bool tex_c = texture_cleo->LoadTGA("textures/cleo_color_specular.tga", true);
-
-
-
-    //Now we set how the camera looks
-    camera->SetPerspective(fov, float(framebuffer.width) / framebuffer.height, near_plane, far_plane);
-    camera->eye.Set(0, 0, 1);// Where is the camera
-    camera->center.Set(0, 0, 0); // Where is it pointing
-    camera->up.Set(0, 1, 0); // The up pointing up
-    camera->UpdateViewMatrix();
+    quad.CreateQuad();
+    shader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
+    texture = Texture::Get("res/images/fruits.png");
     
 }
 
@@ -79,39 +68,47 @@ bool case2 = false;
 // Render one frame
 void Application::Render(void)
 {
-	// ...
-    // Testing different functions
-    framebuffer.DrawBlack(0, 0, framebuffer.width, framebuffer.height);
-    zBuffer.Fill(100.0);
+    shader->Enable();
+    //glEnable(GL_DEPTH);
     
-    //framebuffer.DrawTriangleInterpolated(Vector3(100, 100, 5), Vector3(300, 350, 20), Vector3(630, 300, 10), Color::RED, Color::CYAN, Color::YELLOW);
-    if (case1) {
-        anna.Render(&framebuffer, camera, Color::RED, &zBuffer, texture_anna);
-        //lee.Render(&framebuffer, camera, Color::GREEN, &zBuffer, texture_lee);
-        //cleo.Render(&framebuffer, camera, Color::BLUE, &zBuffer, texture_cleo);
-    }
-    if (case2) {
-        anna.Render(&framebuffer, camera, Color::RED, &zBuffer, texture_anna);
-        //lee.Render(&framebuffer, camera, Color::GREEN, &zBuffer, texture_lee);
-        //cleo.Render(&framebuffer, camera, Color::BLUE, &zBuffer, texture_cleo);
-    }
+    if (Ex1) {
+        if (_a) option = 1.1;
+        else if (_b) option = 1.2;
+        else if (_c) option = 1.3;
+        else if (_d) option = 1.4;
+        else if (_e) option = 1.5;
+        else if (_f) option = 1.6;
+    } else if (Ex2) {
+        if (_a) option = 2.1;
+        else if (_b) option = 2.2;
+        else if (_c) option = 2.3;
+        else if (_d) option = 2.4;
+        else if (_e) option = 2.5;
+        else if (_f) option = 2.6;
+    } else if (Ex3) {
         
-    // Send the framebuffer to the screen
-	framebuffer.Render();
+    } else if (Ex4) {
+        
+    }
+    
+    shader->SetFloat("u_option", option); //Setting the option variable as the u_option variable for the shader
+    quad.Render();
+    //glDisable(GL_DEPTH);
+    shader->Disable();
 }
 
 // Called after render
 void Application::Update(float seconds_elapsed)
 {
-    anna.Render(&framebuffer, camera, Color::RED, &zBuffer, texture_anna);
-    if (case2) {
-        this->anna.Update(seconds_elapsed, 1);
-        this->lee.Update(seconds_elapsed, 2);
-        this->cleo.Update(seconds_elapsed, 3);
-    }
-    
-    camera->UpdateViewMatrix();
-    camera->UpdateProjectionMatrix();
+//    anna.Render(&framebuffer, camera, Color::RED, &zBuffer, texture_anna);
+//    if (case2) {
+//        this->anna.Update(seconds_elapsed, 1);
+//        this->lee.Update(seconds_elapsed, 2);
+//        this->cleo.Update(seconds_elapsed, 3);
+//    }
+//    
+//    camera->UpdateViewMatrix();
+//    camera->UpdateProjectionMatrix();
     
     
 }
@@ -133,13 +130,34 @@ void Application::OnKeyPressed( SDL_KeyboardEvent event )
     switch(event.keysym.sym) {
         case SDLK_ESCAPE: exit(0); break; // ESC key, kill the app
         case SDLK_1:
-            if (!case1) case1 = true; else case1 = false;
-            printf("Draw single entity!");
+            Ex1 = true; Ex2 = false; Ex3 = false; Ex4 = false;
             break;
         case SDLK_2:
-            if (!case2) case2 = true; else case2 = false;
-            printf("Draw multiple animated entities!");
-            
+            Ex1 = false; Ex2 = true; Ex3 = false; Ex4 = false;
+            break;
+        case SDLK_3:
+            Ex1 = false; Ex2 = false; Ex3 = true; Ex4 = false;
+            break;
+        case SDLK_4:
+            Ex1 = false; Ex2 = false; Ex3 = false; Ex4 = true;
+            break;
+        case SDLK_a: 
+            _a = true; _b = false; _c = false; _d = false; _e = false; _f = false;
+            break;
+        case SDLK_b:
+            _a = false; _b = true; _c = false; _d = false; _e = false; _f = false;
+            break;
+        case SDLK_c:
+            _a = false; _b = false; _c = true; _d = false; _e = false; _f = false;
+            break;
+        case SDLK_d:
+            _a = false; _b = false; _c = false; _d = true; _e = false; _f = false;
+            break;
+        case SDLK_e:
+            _a = false; _b = false; _c = false; _d = false; _e = true; _f = false;
+            break;
+        case SDLK_f:
+            _a = false; _b = false; _c = false; _d = false; _e = false; _f = true;
             break;
         case SDLK_o:
             if (perspective) perspective = false; //Set ortographic
@@ -165,10 +183,10 @@ void Application::OnKeyPressed( SDL_KeyboardEvent event )
             if (!nearplane) nearplane = true; // set nearplane
             printf("Set current property to camera near");
             break;
-        case SDLK_f:
-            if (nearplane) nearplane = false; // set farplane
-            printf("Set current property to camera far");
-            break;
+//        case SDLK_f:
+//            if (nearplane) nearplane = false; // set farplane
+//            printf("Set current property to camera far");
+//            break;
         case SDLK_PLUS: //Should be SDLK_PLUS
             if (perspective){ //Perspective
                 if (nearplane) near_plane += .1; else if (!nearplane) far_plane += 5;
@@ -199,12 +217,12 @@ void Application::OnKeyPressed( SDL_KeyboardEvent event )
             // TRIANGLES-INTERPOLATED - 3.2
             // OCCLUSIONS - Z-BUFFER, 3.3
             // TEXTURES - 3.4
-        case SDLK_c:
-            printf("Toggle (activate/deactivate) between PLAIN COLOR/INTERPOLATED vertex colors");
-            //Could do with all 3 Entities
-            if (anna.mode == Entity::eRenderMode::COLOR) anna.mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
-            else anna.mode = Entity::eRenderMode::COLOR;
-            break;
+//        case SDLK_c:
+//            printf("Toggle (activate/deactivate) between PLAIN COLOR/INTERPOLATED vertex colors");
+//            //Could do with all 3 Entities
+//            if (anna.mode == Entity::eRenderMode::COLOR) anna.mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
+//            else anna.mode = Entity::eRenderMode::COLOR;
+//            break;
         case SDLK_z:
             printf("Toggle between OCCLUSIONS and NO OCCLUSIONS");
             if (anna.mode == Entity::eRenderMode::OCCLUSIONS) anna.mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
