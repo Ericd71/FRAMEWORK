@@ -51,13 +51,17 @@ bool Ex3 = false;
 //Render 3D mesh using GPU
 bool Ex4 = false;
 
+
+
 void Application::Init(void)
 {
 	std::cout << "Initiating app..." << std::endl;
     
     quad.CreateQuad();
     shader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
-    texture = Texture::Get("res/images/fruits.png");
+    texture = Texture::Get("images/fruits.png");
+    
+    
     
 }
 
@@ -86,12 +90,18 @@ void Application::Render(void)
         else if (_e) option = 2.5;
         else if (_f) option = 2.6;
     } else if (Ex3) {
+        if (_a) option = 3.1;
+        else if (_b) option = 3.2;
         
     } else if (Ex4) {
         
     }
     
+    
     shader->SetFloat("u_option", option); //Setting the option variable as the u_option variable for the shader
+    shader->SetFloat("u_time", time); //Assign value of time
+    shader->SetTexture("u_texture", texture); // I will assign a texture to the given image to be able to be used in the shaders
+    shader->SetUniform2("u_aspect", float(this->window_width), float(this->window_height)); //assigns aspect ratio by taking into account the width and height
     quad.Render();
     //glDisable(GL_DEPTH);
     shader->Disable();
